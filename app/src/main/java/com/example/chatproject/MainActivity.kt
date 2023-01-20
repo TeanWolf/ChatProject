@@ -4,6 +4,8 @@ import android.graphics.drawable.BitmapDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chatproject.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -19,6 +21,8 @@ import com.squareup.picasso.Picasso
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     lateinit var auth: FirebaseAuth
+    lateinit var adapter: UserAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //активация binding
@@ -32,30 +36,55 @@ class MainActivity : AppCompatActivity() {
         val myRef = database.getReference("message")
         //отправка сообщения по кнопке
         binding.buttonSend.setOnClickListener {
-            myRef.setValue("Hello!")
+            myRef.child(myRef.push().key ?: "bla").setValue(User(auth.currentUser?.displayName, binding.edMessage.text.toString()))
         }
+        onChangeListener(myRef)
+        initRcView()
     }
+
+    //инициализация списка и заполнение
+    private fun initRcView() = with(binding)
+    {
+        adapter = UserAdapter()
+        rcView.layoutManager = LinearLayoutManager(this@MainActivity)
+        rcView.adapter = adapter
+    }
+
     //создание выхода из приложения
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
+    //создание выхода из приложения
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.sign_out)
+        {
+            auth.signOut()
+            finish()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     //добавление сообщений на рабочий стол rview
     private fun onChangeListener(dRef: DatabaseReference)
     {
         //потсоянно проверяет обновления
-        dRef.addValueEventListener(object : ValueEventListener {
+        dRef.addValueEventListener(object : ValueEventListener{
             //запись изменений
             override fun onDataChange(snapshot: DataSnapshot) {
-
+                val list = ArrayList<User>()
+                for(s in snapshot.children)
+                {
+                    val user = s.getValue(User::class.java)
+                    if(user != null)list.add(user)
+                }
+                adapter.submitList(list)
             }
 
             override fun onCancelled(error: DatabaseError) {
 
             }
-
-
         })
     }
 
