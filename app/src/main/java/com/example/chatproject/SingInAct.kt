@@ -82,11 +82,22 @@ class SingInAct : AppCompatActivity() {
             if(it.isSuccessful)
             {
                 Log.d("MyLog", "Google signIn done")
+                checkAuthState()
             }
             else
             {
                 Log.d("MyLog", "Google signIn error")
             }
+        }
+    }
+
+    //проверяет нажата ли кнопка и запуск основной части кода
+    private fun checkAuthState()
+    {
+        if(auth.currentUser != null)
+        {
+            val i = Intent(this, MainActivity::class.java)
+            startActivity(i)
         }
     }
 
