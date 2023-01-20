@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         auth = Firebase.auth
+        setUpActionBar()
         //подключение к бд
         val database = Firebase.database
         //создание пробной записи в БД
@@ -56,6 +57,22 @@ class MainActivity : AppCompatActivity() {
 
 
         })
+    }
+
+    //добавление иконки и имени
+    private fun setUpActionBar()
+    {
+        val ab = supportActionBar
+        Thread{
+            val bMap = Picasso.get().load(auth.currentUser?.photoUrl).get()
+            val dIcon = BitmapDrawable(resources, bMap)
+            runOnUiThread{
+                ab?.setDisplayHomeAsUpEnabled(true)
+                ab?.setHomeAsUpIndicator(dIcon)
+                ab?.title = auth.currentUser?.displayName
+            }
+        }.start()
+
     }
 
 }
